@@ -1,0 +1,121 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1333 0%, #0a0a23 100%);
+    color: #e0e6f7;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+.container {
+    max-width: 540px;
+    margin: 80px auto 0 auto;
+    background: rgba(30, 20, 60, 0.7);
+    border-radius: 18px;
+    box-shadow: 0 0 18px 2px #00e0ff33;
+    padding: 36px 32px 32px 32px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: #7ee8fa;
+    letter-spacing: 1px;
+}
+
+.header p {
+    color: #b3b8d1;
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+}
+
+.ai-badge {
+    background: #3a1c71;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 6px 18px;
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+    cursor: default;
+    box-shadow: 0 2px 8px #00e0ff22;
+}
+
+.input-box {
+    background: #18122b;
+    border-radius: 14px;
+    padding: 22px 18px 18px 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 8px #00e0ff11;
+    text-align: left;
+}
+
+.input-box label {
+    font-weight: 600;
+    color: #e0e6f7;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.yt-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#youtube-url {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    background: #2a2342;
+    color: #e0e6f7;
+    outline: none;
+}
+
+#generate-btn {
+    background: #6c47ff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#generate-btn:hover {
+    background: #7ee8fa;
+    color: #18122b;
+}
+
+.input-box small {
+    color: #b3b8d1;
+    margin-top: 8px;
+    display: block;
+}
+
+.output {
+    margin-top: 24px;
+    background: #18122b;
+    border-radius: 12px;
+    padding: 18px 16px;
+    min-height: 60px;
+    color: #e0e6f7;
+    font-size: 1.08rem;
+    box-shadow: 0 0 8px #00e0ff11;
+    display: none;
+    text-align: left;
+}
