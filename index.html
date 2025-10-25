@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcript & Summary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="ai-badge">AI-Powered Video Analysis</button>
+            <h1>YouTube Transcript<br>& Summary</h1>
+            <p>Transform any YouTube video into a readable transcript and concise AI-generated summary</p>
+        </div>
+        <div class="input-box">
+            <label for="youtube-url"><img src="https://img.icons8.com/color/48/000000/youtube-play.png" alt="YouTube Icon" class="yt-icon"> Enter YouTube URL</label>
+            <div class="input-row">
+                <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                <button id="generate-btn">Generate</button>
+            </div>
+            <small>Paste a YouTube video URL to get the transcript and AI summary</small>
+        </div>
+        <div id="output" class="output"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
