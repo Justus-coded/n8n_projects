@@ -3,26 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Transcript & Summary</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Generate AI-powered flashcards from text or documents">
+    <title>Flashcard Generator</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <button class="ai-badge">AI-Powered Video Analysis</button>
-            <h1>YouTube Transcript<br>& Summary</h1>
-            <p>Transform any YouTube video into a readable transcript and concise AI-generated summary</p>
-        </div>
-        <div class="input-box">
-            <label for="youtube-url"><img src="https://img.icons8.com/color/48/000000/youtube-play.png" alt="YouTube Icon" class="yt-icon"> Enter YouTube URL</label>
-            <div class="input-row">
-                <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
-                <button id="generate-btn">Generate</button>
+        <header>
+            <h1>📚 Flashcard Generator</h1>
+            <p class="subtitle">Transform your notes into interactive flashcards</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="tab-container">
+                    <button class="tab-btn active" data-tab="text">Text Input</button>
+                    <button class="tab-btn" data-tab="file">File Upload</button>
+                </div>
+
+                <div class="tab-content active" id="text-tab">
+                    <textarea 
+                        id="text-input" 
+                        placeholder="Paste your text here... (e.g., lecture notes, study material, articles)"
+                        rows="10"
+                    ></textarea>
+                </div>
+
+                <div class="tab-content" id="file-tab">
+                    <div class="file-upload-area" id="file-drop-zone">
+                        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="upload-text">Drag & drop your file here</p>
+                        <p class="upload-subtext">or click to browse</p>
+                        <p class="file-types">Supported: PDF, DOCX (Max 10MB)</p>
+                        <input type="file" id="file-input" accept=".pdf,.doc,.docx" hidden>
+                    </div>
+                    <div class="file-info" id="file-info" style="display: none;">
+                        <div class="file-details">
+                            <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div>
+                                <p class="file-name" id="file-name"></p>
+                                <p class="file-size" id="file-size"></p>
+                            </div>
+                        </div>
+                        <button class="remove-file-btn" id="remove-file-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="card-count">Number of Flashcards</label>
+                        <input 
+                            type="number" 
+                            id="card-count" 
+                            min="1" 
+                            max="50" 
+                            value="5"
+                            placeholder="5"
+                        >
+                    </div>
+                    <button class="generate-btn" id="generate-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate Flashcards
+                    </button>
+                </div>
             </div>
-            <small>Paste a YouTube video URL to get the transcript and AI summary</small>
-        </div>
-        <div id="output" class="output"></div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating your flashcards...</p>
+            </div>
+
+            <div class="flashcards-section" id="flashcards-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Your Flashcards</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn" id="shuffle-btn" title="Shuffle cards">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="download-btn" title="Download as JSON">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-counter">
+                    <span id="current-card">1</span> / <span id="total-cards">0</span>
+                </div>
+
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                <div class="card-content">
+                                    <span class="card-label">Question</span>
+                                    <p id="question-text"></p>
+                                </div>
+                                <p class="flip-hint">Tap to reveal answer</p>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="card-content">
+                                    <span class="card-label">Answer</span>
+                                    <p id="answer-text"></p>
+                                </div>
+                                <p class="flip-hint">Tap to see question</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navigation">
+                    <button class="nav-btn" id="prev-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                    </button>
+                    <button class="nav-btn" id="next-btn">
+                        Next
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ for better learning</p>
+        </footer>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
