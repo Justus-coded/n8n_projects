@@ -11,8 +11,7 @@ document.getElementById('generate-btn').addEventListener('click', async function
 
     outputDiv.textContent = 'Generating summary...';
     try {
-        const response = await fetch('https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/572bcd14-1d14-42ee-845c-76e6bad61647', 
-            {
+        const response = await fetch('https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/572bcd14-1d14-42ee-845c-76e6bad61647', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
