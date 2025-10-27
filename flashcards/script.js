@@ -219,24 +219,22 @@ generateBtn.addEventListener('click', async () => {
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
 
-        // Try to get response body even if status is not OK
+        // Try to get response body regardless of status
         const responseText = await response.text();
         console.log('Raw response:', responseText);
 
-        if (!response.ok) {
-            console.error(`Webhook returned status ${response.status}. Response body:`, responseText);
-            // Try to parse the error response
-            try {
-                const errorData = JSON.parse(responseText);
-                console.error('Error details:', errorData);
-            } catch (e) {
-                console.error('Could not parse error response as JSON');
+        // Try to parse the response even if status is not OK
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('Parsed result:', result);
+        } catch (parseError) {
+            console.error('Could not parse response as JSON:', parseError);
+            if (!response.ok) {
+                throw new Error(`Webhook returned status ${response.status} and response is not valid JSON: ${responseText.substring(0, 200)}`);
             }
-            throw new Error(`Webhook returned status ${response.status}: ${responseText.substring(0, 200)}`);
+            throw parseError;
         }
-        
-        const result = JSON.parse(responseText);
-        console.log('Parsed result:', result);
         
         // Parse the webhook response - handle array format with nested JSON string
         if (Array.isArray(result) && result.length > 0 && result[0].output) {
@@ -246,17 +244,22 @@ generateBtn.addEventListener('click', async () => {
             console.log('Parsed output:', parsedOutput);
             if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
                 flashcards = parsedOutput.flashcards;
-                console.log('Flashcards loaded:', flashcards.length);
+                console.log('Flashcards loaded successfully:', flashcards.length);
             } else {
+                console.warn('No flashcards found in parsed output');
                 throw new Error('Invalid flashcards format in response');
             }
         } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
             console.log('Processing direct flashcards format');
             // Direct flashcards format
             flashcards = result.flashcards;
-            console.log('Flashcards loaded:', flashcards.length);
+            console.log('Flashcards loaded successfully:', flashcards.length);
         } else {
             console.error('Unexpected response format:', result);
+            // If we got a 500 error and no flashcards, throw error
+            if (!response.ok) {
+                throw new Error(`Webhook returned status ${response.status} with no valid flashcards data`);
+            }
             throw new Error('No flashcards found in response');
         }
         
