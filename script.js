@@ -157,6 +157,15 @@ generateBtn.addEventListener('click', async () => {
     loading.style.display = 'block';
     flashcardsSection.style.display = 'none';
 
+    // Update loading message to indicate it may take time
+    const loadingMessage = loading.querySelector('p');
+    const originalMessage = loadingMessage.textContent;
+    let dots = 0;
+    const loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        loadingMessage.textContent = originalMessage + '.'.repeat(dots);
+    }, 500);
+
     // Send data to webhook
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
@@ -189,35 +198,70 @@ generateBtn.addEventListener('click', async () => {
             };
         }
 
+        console.log('Sending request to webhook...');
+        
+        // Create an AbortController but with a very long timeout (5 minutes)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+            keepalive: true
         });
 
-        if (!response.ok) {
-            throw new Error(`Webhook returned status ${response.status}`);
-        }
+        clearTimeout(timeoutId);
 
-        const result = await response.json();
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        // Try to get response body even if status is not OK
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        if (!response.ok) {
+            console.error(`Webhook returned status ${response.status}. Response body:`, responseText);
+            // Try to parse the error response
+            try {
+                const errorData = JSON.parse(responseText);
+                console.error('Error details:', errorData);
+            } catch (e) {
+                console.error('Could not parse error response as JSON');
+            }
+            throw new Error(`Webhook returned status ${response.status}: ${responseText.substring(0, 200)}`);
+        }
+        
+        const result = JSON.parse(responseText);
+        console.log('Parsed result:', result);
         
         // Parse the webhook response - handle array format with nested JSON string
         if (Array.isArray(result) && result.length > 0 && result[0].output) {
+            console.log('Processing array format with output field');
             // Parse the nested JSON string from the output field
             const parsedOutput = JSON.parse(result[0].output);
+            console.log('Parsed output:', parsedOutput);
             if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
                 flashcards = parsedOutput.flashcards;
+                console.log('Flashcards loaded:', flashcards.length);
             } else {
                 throw new Error('Invalid flashcards format in response');
             }
         } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
+            console.log('Processing direct flashcards format');
             // Direct flashcards format
             flashcards = result.flashcards;
+            console.log('Flashcards loaded:', flashcards.length);
         } else {
+            console.error('Unexpected response format:', result);
             throw new Error('No flashcards found in response');
         }
+        
+        clearInterval(loadingInterval);
+        loadingMessage.textContent = originalMessage;
         
         displayFlashcards();
         
@@ -229,8 +273,16 @@ generateBtn.addEventListener('click', async () => {
         flashcardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
+        clearInterval(loadingInterval);
+        loadingMessage.textContent = originalMessage;
+        
         console.error('Error sending to webhook:', error);
-        alert('Error connecting to the server. Generating flashcards locally instead.');
+        
+        if (error.name === 'AbortError') {
+            alert('The request took too long (over 5 minutes). Please try with a smaller file or less flashcards.');
+        } else {
+            alert('Error connecting to the server: ' + error.message + '\n\nGenerating flashcards locally instead.');
+        }
         
         // Fallback to local generation on error
         if (activeTab === 'file') {
