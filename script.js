@@ -203,15 +203,20 @@ generateBtn.addEventListener('click', async () => {
 
         const result = await response.json();
         
-        // Check if webhook returned flashcards
-        if (result && result.flashcards && Array.isArray(result.flashcards)) {
+        // Parse the webhook response - handle array format with nested JSON string
+        if (Array.isArray(result) && result.length > 0 && result[0].output) {
+            // Parse the nested JSON string from the output field
+            const parsedOutput = JSON.parse(result[0].output);
+            if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
+                flashcards = parsedOutput.flashcards;
+            } else {
+                throw new Error('Invalid flashcards format in response');
+            }
+        } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
+            // Direct flashcards format
             flashcards = result.flashcards;
         } else {
-            // Fallback to local generation
-            if (activeTab === 'file') {
-                content = await extractTextFromFile(uploadedFile);
-            }
-            flashcards = generateFlashcardsFromText(content, cardCount);
+            throw new Error('No flashcards found in response');
         }
         
         displayFlashcards();
