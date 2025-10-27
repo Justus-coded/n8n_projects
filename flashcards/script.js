@@ -199,6 +199,15 @@ generateBtn.addEventListener('click', async () => {
         }
 
         console.log('Sending request to webhook...');
+        console.log('Webhook URL:', webhookUrl);
+        console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
+        console.log('Payload structure:', {
+            source: payload.source,
+            cardCount: payload.cardCount,
+            hasContent: !!payload.content,
+            hasBinary: !!payload.binary,
+            fileName: payload.binary?.file?.fileName || 'N/A'
+        });
         
         // Create an AbortController but with a very long timeout (5 minutes)
         const controller = new AbortController();
@@ -211,10 +220,12 @@ generateBtn.addEventListener('click', async () => {
             },
             body: JSON.stringify(payload),
             signal: controller.signal,
-            keepalive: true
+            mode: 'cors', // Explicitly set CORS mode
+            credentials: 'omit' // Don't send credentials
         });
 
         clearTimeout(timeoutId);
+        console.log('Request completed successfully');
 
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
@@ -280,9 +291,14 @@ generateBtn.addEventListener('click', async () => {
         loadingMessage.textContent = originalMessage;
         
         console.error('Error sending to webhook:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         
         if (error.name === 'AbortError') {
             alert('The request took too long (over 5 minutes). Please try with a smaller file or less flashcards.');
+        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            alert('Network Error: Unable to reach the webhook server.\n\nPossible causes:\n- CORS (Cross-Origin) issue\n- Webhook URL is incorrect or unavailable\n- ngrok tunnel expired\n- File size too large for network\n\nGenerating flashcards locally instead.');
         } else {
             alert('Error connecting to the server: ' + error.message + '\n\nGenerating flashcards locally instead.');
         }
