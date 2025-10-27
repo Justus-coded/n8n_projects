@@ -161,22 +161,32 @@ generateBtn.addEventListener('click', async () => {
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
         
-        let payload = {
-            cardCount: cardCount,
-            timestamp: new Date().toISOString(),
-            source: activeTab
-        };
+        let payload;
         
         if (activeTab === 'text') {
             // Send text content
-            payload.content = content;
+            payload = {
+                content: content,
+                cardCount: cardCount,
+                timestamp: new Date().toISOString(),
+                source: activeTab
+            };
         } else {
-            // Convert file to base64 and send
+            // Convert file to base64 and send in binary structure
             const base64File = await fileToBase64(uploadedFile);
-            payload.file = base64File;
-            payload.fileName = uploadedFile.name;
-            payload.fileType = uploadedFile.type;
-            payload.fileSize = uploadedFile.size;
+            payload = {
+                binary: {
+                    file: {
+                        data: base64File,
+                        fileName: uploadedFile.name,
+                        mimeType: uploadedFile.type,
+                        fileSize: uploadedFile.size
+                    }
+                },
+                cardCount: cardCount,
+                timestamp: new Date().toISOString(),
+                source: activeTab
+            };
         }
 
         const response = await fetch(webhookUrl, {
@@ -193,7 +203,7 @@ generateBtn.addEventListener('click', async () => {
 
         const result = await response.json();
         
-        // Check if webhook returned flashcards, otherwise generate locally
+        // Check if webhook returned flashcards
         if (result && result.flashcards && Array.isArray(result.flashcards)) {
             flashcards = result.flashcards;
         } else {
