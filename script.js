@@ -113,6 +113,20 @@ function formatFileSize(bytes) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
+// Convert file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
 // Generate Flashcards
 generateBtn.addEventListener('click', async () => {
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
@@ -147,23 +161,30 @@ generateBtn.addEventListener('click', async () => {
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
         
-        const formData = new FormData();
-        formData.append('cardCount', cardCount);
-        formData.append('timestamp', new Date().toISOString());
-        formData.append('source', activeTab);
+        let payload = {
+            cardCount: cardCount,
+            timestamp: new Date().toISOString(),
+            source: activeTab
+        };
         
         if (activeTab === 'text') {
-            // Send text content as a field
-            formData.append('content', content);
+            // Send text content
+            payload.content = content;
         } else {
-            // Send the actual file
-            formData.append('file', uploadedFile);
-            formData.append('fileName', uploadedFile.name);
+            // Convert file to base64 and send
+            const base64File = await fileToBase64(uploadedFile);
+            payload.file = base64File;
+            payload.fileName = uploadedFile.name;
+            payload.fileType = uploadedFile.type;
+            payload.fileSize = uploadedFile.size;
         }
 
         const response = await fetch(webhookUrl, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
