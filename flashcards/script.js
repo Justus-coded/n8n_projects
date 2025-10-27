@@ -136,17 +136,6 @@ generateBtn.addEventListener('click', async () => {
             alert('Please upload a file');
             return;
         }
-        // Extract text from file
-        try {
-            content = await extractTextFromFile(uploadedFile);
-            if (!content) {
-                alert('Could not extract text from the file');
-                return;
-            }
-        } catch (error) {
-            alert('Error reading file: ' + error.message);
-            return;
-        }
     }
 
     // Show loading state
@@ -158,20 +147,23 @@ generateBtn.addEventListener('click', async () => {
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
         
-        const payload = {
-            content: content,
-            cardCount: cardCount,
-            timestamp: new Date().toISOString(),
-            source: activeTab,
-            fileName: uploadedFile ? uploadedFile.name : null
-        };
+        const formData = new FormData();
+        formData.append('cardCount', cardCount);
+        formData.append('timestamp', new Date().toISOString());
+        formData.append('source', activeTab);
+        
+        if (activeTab === 'text') {
+            // Send text content as a field
+            formData.append('content', content);
+        } else {
+            // Send the actual file
+            formData.append('file', uploadedFile);
+            formData.append('fileName', uploadedFile.name);
+        }
 
         const response = await fetch(webhookUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
         if (!response.ok) {
@@ -185,6 +177,9 @@ generateBtn.addEventListener('click', async () => {
             flashcards = result.flashcards;
         } else {
             // Fallback to local generation
+            if (activeTab === 'file') {
+                content = await extractTextFromFile(uploadedFile);
+            }
             flashcards = generateFlashcardsFromText(content, cardCount);
         }
         
@@ -202,6 +197,16 @@ generateBtn.addEventListener('click', async () => {
         alert('Error connecting to the server. Generating flashcards locally instead.');
         
         // Fallback to local generation on error
+        if (activeTab === 'file') {
+            try {
+                content = await extractTextFromFile(uploadedFile);
+            } catch (extractError) {
+                alert('Error reading file: ' + extractError.message);
+                generateBtn.disabled = false;
+                loading.style.display = 'none';
+                return;
+            }
+        }
         flashcards = generateFlashcardsFromText(content, cardCount);
         displayFlashcards();
         
