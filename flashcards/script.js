@@ -230,15 +230,31 @@ generateBtn.addEventListener('click', async () => {
             throw new Error(`Webhook returned status ${response.status} and response is not valid JSON`);
         }
         
-        // Parse the webhook response - handle array format with nested JSON string
-        if (Array.isArray(result) && result.length > 0 && result[0].output) {
+        // Parse the webhook response - handle multiple formats
+        if (result && result.output && typeof result.output === 'string') {
+            console.log('Processing object format with output field (string)');
+            // Parse the nested JSON string from the output field
+            try {
+                const parsedOutput = JSON.parse(result.output);
+                console.log('Parsed output:', parsedOutput);
+                if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
+                    flashcards = parsedOutput.flashcards;
+                    console.log('✅ Flashcards loaded successfully:', flashcards.length);
+                } else {
+                    throw new Error('Invalid flashcards format in parsed output');
+                }
+            } catch (parseError) {
+                console.error('Error parsing output string:', parseError);
+                throw new Error('Could not parse output field as JSON');
+            }
+        } else if (Array.isArray(result) && result.length > 0 && result[0].output) {
             console.log('Processing array format with output field');
             // Parse the nested JSON string from the output field
             const parsedOutput = JSON.parse(result[0].output);
             console.log('Parsed output:', parsedOutput);
             if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
                 flashcards = parsedOutput.flashcards;
-                console.log('Flashcards loaded successfully:', flashcards.length);
+                console.log('✅ Flashcards loaded successfully:', flashcards.length);
             } else {
                 throw new Error('Invalid flashcards format in response');
             }
@@ -246,7 +262,7 @@ generateBtn.addEventListener('click', async () => {
             console.log('Processing direct flashcards format');
             // Direct flashcards format
             flashcards = result.flashcards;
-            console.log('Flashcards loaded successfully:', flashcards.length);
+            console.log('✅ Flashcards loaded successfully:', flashcards.length);
         } else {
             console.error('Unexpected response format:', result);
             // If we got a 500 error and no flashcards, throw error
