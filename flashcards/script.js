@@ -3,35 +3,49 @@ let flashcards = [];
 let currentCardIndex = 0;
 let uploadedFile = null;
 
-// DOM Elements
-const textTab = document.querySelector('[data-tab="text"]');
-const fileTab = document.querySelector('[data-tab="file"]');
-const textTabContent = document.getElementById('text-tab');
-const fileTabContent = document.getElementById('file-tab');
-const textInput = document.getElementById('text-input');
-const fileInput = document.getElementById('file-input');
-const fileDropZone = document.getElementById('file-drop-zone');
-const fileInfo = document.getElementById('file-info');
-const fileName = document.getElementById('file-name');
-const fileSize = document.getElementById('file-size');
-const removeFileBtn = document.getElementById('remove-file-btn');
-const cardCountInput = document.getElementById('card-count');
-const generateBtn = document.getElementById('generate-btn');
-const loading = document.getElementById('loading');
-const flashcardsSection = document.getElementById('flashcards-section');
-const flashcard = document.getElementById('flashcard');
-const questionText = document.getElementById('question-text');
-const answerText = document.getElementById('answer-text');
-const currentCardSpan = document.getElementById('current-card');
-const totalCardsSpan = document.getElementById('total-cards');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const shuffleBtn = document.getElementById('shuffle-btn');
-const downloadBtn = document.getElementById('download-btn');
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
-// Tab Switching
-textTab.addEventListener('click', () => switchTab('text'));
-fileTab.addEventListener('click', () => switchTab('file'));
+function initializeApp() {
+    // DOM Elements
+    const textTab = document.querySelector('[data-tab="text"]');
+    const fileTab = document.querySelector('[data-tab="file"]');
+    const textTabContent = document.getElementById('text-tab');
+    const fileTabContent = document.getElementById('file-tab');
+    const textInput = document.getElementById('text-input');
+    const fileInput = document.getElementById('file-input');
+    const fileDropZone = document.getElementById('file-drop-zone');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFileBtn = document.getElementById('remove-file-btn');
+    const cardCountInput = document.getElementById('card-count');
+    const generateBtn = document.getElementById('generate-btn');
+    const loading = document.getElementById('loading');
+    const flashcardsSection = document.getElementById('flashcards-section');
+    const flashcard = document.getElementById('flashcard');
+    const questionText = document.getElementById('question-text');
+    const answerText = document.getElementById('answer-text');
+    const currentCardSpan = document.getElementById('current-card');
+    const totalCardsSpan = document.getElementById('total-cards');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    const downloadBtn = document.getElementById('download-btn');
+
+    // Check if all elements are found
+    if (!fileInput || !fileDropZone) {
+        console.error('File upload elements not found!');
+        return;
+    }
+
+    console.log('File upload initialized');
+
+    // Tab Switching
+    textTab.addEventListener('click', () => switchTab('text'));
+    fileTab.addEventListener('click', () => switchTab('file'));
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -507,3 +521,5 @@ function handleSwipe() {
         }
     }
 }
+
+} // End of initializeApp function

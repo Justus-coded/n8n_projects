@@ -3,35 +3,49 @@ let flashcards = [];
 let currentCardIndex = 0;
 let uploadedFile = null;
 
-// DOM Elements
-const textTab = document.querySelector('[data-tab="text"]');
-const fileTab = document.querySelector('[data-tab="file"]');
-const textTabContent = document.getElementById('text-tab');
-const fileTabContent = document.getElementById('file-tab');
-const textInput = document.getElementById('text-input');
-const fileInput = document.getElementById('file-input');
-const fileDropZone = document.getElementById('file-drop-zone');
-const fileInfo = document.getElementById('file-info');
-const fileName = document.getElementById('file-name');
-const fileSize = document.getElementById('file-size');
-const removeFileBtn = document.getElementById('remove-file-btn');
-const cardCountInput = document.getElementById('card-count');
-const generateBtn = document.getElementById('generate-btn');
-const loading = document.getElementById('loading');
-const flashcardsSection = document.getElementById('flashcards-section');
-const flashcard = document.getElementById('flashcard');
-const questionText = document.getElementById('question-text');
-const answerText = document.getElementById('answer-text');
-const currentCardSpan = document.getElementById('current-card');
-const totalCardsSpan = document.getElementById('total-cards');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const shuffleBtn = document.getElementById('shuffle-btn');
-const downloadBtn = document.getElementById('download-btn');
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
-// Tab Switching
-textTab.addEventListener('click', () => switchTab('text'));
-fileTab.addEventListener('click', () => switchTab('file'));
+function initializeApp() {
+    // DOM Elements
+    const textTab = document.querySelector('[data-tab="text"]');
+    const fileTab = document.querySelector('[data-tab="file"]');
+    const textTabContent = document.getElementById('text-tab');
+    const fileTabContent = document.getElementById('file-tab');
+    const textInput = document.getElementById('text-input');
+    const fileInput = document.getElementById('file-input');
+    const fileDropZone = document.getElementById('file-drop-zone');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFileBtn = document.getElementById('remove-file-btn');
+    const cardCountInput = document.getElementById('card-count');
+    const generateBtn = document.getElementById('generate-btn');
+    const loading = document.getElementById('loading');
+    const flashcardsSection = document.getElementById('flashcards-section');
+    const flashcard = document.getElementById('flashcard');
+    const questionText = document.getElementById('question-text');
+    const answerText = document.getElementById('answer-text');
+    const currentCardSpan = document.getElementById('current-card');
+    const totalCardsSpan = document.getElementById('total-cards');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    const downloadBtn = document.getElementById('download-btn');
+
+    // Check if all elements are found
+    if (!fileInput || !fileDropZone) {
+        console.error('File upload elements not found!');
+        return;
+    }
+
+    console.log('File upload initialized');
+
+    // Tab Switching
+    textTab.addEventListener('click', () => switchTab('text'));
+    fileTab.addEventListener('click', () => switchTab('file'));
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -189,43 +203,20 @@ generateBtn.addEventListener('click', async () => {
             };
         }
 
-<<<<<<< HEAD
         console.log('Sending request to webhook...');
-        console.log('Webhook URL:', webhookUrl);
         console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
-        console.log('Payload structure:', {
-            source: payload.source,
-            cardCount: payload.cardCount,
-            hasContent: !!payload.content,
-            hasBinary: !!payload.binary,
-            fileName: payload.binary?.file?.fileName || 'N/A'
-        });
         
-        // Create an AbortController but with a very long timeout (5 minutes)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
-
-=======
->>>>>>> parent of 9bd0a13 (updated js file)
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-<<<<<<< HEAD
-            body: JSON.stringify(payload),
-            signal: controller.signal,
-            mode: 'cors', // Explicitly set CORS mode
-            credentials: 'omit' // Don't send credentials
+            body: JSON.stringify(payload)
         });
 
-        clearTimeout(timeoutId);
-        console.log('Request completed successfully');
-
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
 
-        // Try to get response body regardless of status
+        // Try to get response body regardless of status (even 500)
         const responseText = await response.text();
         console.log('Raw response:', responseText);
 
@@ -236,40 +227,25 @@ generateBtn.addEventListener('click', async () => {
             console.log('Parsed result:', result);
         } catch (parseError) {
             console.error('Could not parse response as JSON:', parseError);
-            if (!response.ok) {
-                throw new Error(`Webhook returned status ${response.status} and response is not valid JSON: ${responseText.substring(0, 200)}`);
-            }
-            throw parseError;
+            throw new Error(`Webhook returned status ${response.status} and response is not valid JSON`);
         }
-=======
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Webhook returned status ${response.status}`);
-        }
-
-        const result = await response.json();
->>>>>>> parent of 9bd0a13 (updated js file)
         
         // Parse the webhook response - handle array format with nested JSON string
         if (Array.isArray(result) && result.length > 0 && result[0].output) {
+            console.log('Processing array format with output field');
             // Parse the nested JSON string from the output field
             const parsedOutput = JSON.parse(result[0].output);
+            console.log('Parsed output:', parsedOutput);
             if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
                 flashcards = parsedOutput.flashcards;
-<<<<<<< HEAD
                 console.log('Flashcards loaded successfully:', flashcards.length);
-=======
->>>>>>> parent of 9bd0a13 (updated js file)
             } else {
-                console.warn('No flashcards found in parsed output');
                 throw new Error('Invalid flashcards format in response');
             }
         } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
+            console.log('Processing direct flashcards format');
             // Direct flashcards format
             flashcards = result.flashcards;
-<<<<<<< HEAD
             console.log('Flashcards loaded successfully:', flashcards.length);
         } else {
             console.error('Unexpected response format:', result);
@@ -277,9 +253,6 @@ generateBtn.addEventListener('click', async () => {
             if (!response.ok) {
                 throw new Error(`Webhook returned status ${response.status} with no valid flashcards data`);
             }
-=======
-        } else {
->>>>>>> parent of 9bd0a13 (updated js file)
             throw new Error('No flashcards found in response');
         }
         
@@ -294,21 +267,9 @@ generateBtn.addEventListener('click', async () => {
         
     } catch (error) {
         console.error('Error sending to webhook:', error);
-<<<<<<< HEAD
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+        console.error('Error details:', error.message);
         
-        if (error.name === 'AbortError') {
-            alert('The request took too long (over 5 minutes). Please try with a smaller file or less flashcards.');
-        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            alert('Network Error: Unable to reach the webhook server.\n\nPossible causes:\n- CORS (Cross-Origin) issue\n- Webhook URL is incorrect or unavailable\n- ngrok tunnel expired\n- File size too large for network\n\nGenerating flashcards locally instead.');
-        } else {
-            alert('Error connecting to the server: ' + error.message + '\n\nGenerating flashcards locally instead.');
-        }
-=======
-        alert('Error connecting to the server. Generating flashcards locally instead.');
->>>>>>> parent of 9bd0a13 (updated js file)
+        alert('Error: ' + error.message + '\n\nGenerating flashcards locally instead.');
         
         // Fallback to local generation on error
         if (activeTab === 'file') {
@@ -560,3 +521,5 @@ function handleSwipe() {
         }
     }
 }
+
+} // End of initializeApp function
