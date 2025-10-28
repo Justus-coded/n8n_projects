@@ -157,15 +157,6 @@ generateBtn.addEventListener('click', async () => {
     loading.style.display = 'block';
     flashcardsSection.style.display = 'none';
 
-    // Update loading message to indicate it may take time
-    const loadingMessage = loading.querySelector('p');
-    const originalMessage = loadingMessage.textContent;
-    let dots = 0;
-    const loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        loadingMessage.textContent = originalMessage + '.'.repeat(dots);
-    }, 500);
-
     // Send data to webhook
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
@@ -199,38 +190,19 @@ generateBtn.addEventListener('click', async () => {
         }
 
         console.log('Sending request to webhook...');
-        console.log('Webhook URL:', webhookUrl);
         console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
-        console.log('Payload structure:', {
-            source: payload.source,
-            cardCount: payload.cardCount,
-            hasContent: !!payload.content,
-            hasBinary: !!payload.binary,
-            fileName: payload.binary?.file?.fileName || 'N/A'
-        });
         
-        // Create an AbortController but with a very long timeout (5 minutes)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
-
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload),
-            signal: controller.signal,
-            mode: 'cors', // Explicitly set CORS mode
-            credentials: 'omit' // Don't send credentials
+            body: JSON.stringify(payload)
         });
 
-        clearTimeout(timeoutId);
-        console.log('Request completed successfully');
-
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
 
-        // Try to get response body regardless of status
+        // Try to get response body regardless of status (even 500)
         const responseText = await response.text();
         console.log('Raw response:', responseText);
 
@@ -241,10 +213,7 @@ generateBtn.addEventListener('click', async () => {
             console.log('Parsed result:', result);
         } catch (parseError) {
             console.error('Could not parse response as JSON:', parseError);
-            if (!response.ok) {
-                throw new Error(`Webhook returned status ${response.status} and response is not valid JSON: ${responseText.substring(0, 200)}`);
-            }
-            throw parseError;
+            throw new Error(`Webhook returned status ${response.status} and response is not valid JSON`);
         }
         
         // Parse the webhook response - handle array format with nested JSON string
@@ -257,7 +226,6 @@ generateBtn.addEventListener('click', async () => {
                 flashcards = parsedOutput.flashcards;
                 console.log('Flashcards loaded successfully:', flashcards.length);
             } else {
-                console.warn('No flashcards found in parsed output');
                 throw new Error('Invalid flashcards format in response');
             }
         } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
@@ -274,9 +242,6 @@ generateBtn.addEventListener('click', async () => {
             throw new Error('No flashcards found in response');
         }
         
-        clearInterval(loadingInterval);
-        loadingMessage.textContent = originalMessage;
-        
         displayFlashcards();
         
         generateBtn.disabled = false;
@@ -287,21 +252,10 @@ generateBtn.addEventListener('click', async () => {
         flashcardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
-        clearInterval(loadingInterval);
-        loadingMessage.textContent = originalMessage;
-        
         console.error('Error sending to webhook:', error);
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+        console.error('Error details:', error.message);
         
-        if (error.name === 'AbortError') {
-            alert('The request took too long (over 5 minutes). Please try with a smaller file or less flashcards.');
-        } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            alert('Network Error: Unable to reach the webhook server.\n\nPossible causes:\n- CORS (Cross-Origin) issue\n- Webhook URL is incorrect or unavailable\n- ngrok tunnel expired\n- File size too large for network\n\nGenerating flashcards locally instead.');
-        } else {
-            alert('Error connecting to the server: ' + error.message + '\n\nGenerating flashcards locally instead.');
-        }
+        alert('Error: ' + error.message + '\n\nGenerating flashcards locally instead.');
         
         // Fallback to local generation on error
         if (activeTab === 'file') {

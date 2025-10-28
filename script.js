@@ -157,15 +157,6 @@ generateBtn.addEventListener('click', async () => {
     loading.style.display = 'block';
     flashcardsSection.style.display = 'none';
 
-    // Update loading message to indicate it may take time
-    const loadingMessage = loading.querySelector('p');
-    const originalMessage = loadingMessage.textContent;
-    let dots = 0;
-    const loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        loadingMessage.textContent = originalMessage + '.'.repeat(dots);
-    }, 500);
-
     // Send data to webhook
     try {
         const webhookUrl = 'https://slanderously-panniered-corbin.ngrok-free.dev/webhook-test/310fc425-b8ef-433d-972f-67a6687b61f8';
@@ -198,6 +189,7 @@ generateBtn.addEventListener('click', async () => {
             };
         }
 
+<<<<<<< HEAD
         console.log('Sending request to webhook...');
         console.log('Webhook URL:', webhookUrl);
         console.log('Payload size:', JSON.stringify(payload).length, 'bytes');
@@ -213,11 +205,14 @@ generateBtn.addEventListener('click', async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
 
+=======
+>>>>>>> parent of 9bd0a13 (updated js file)
         const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+<<<<<<< HEAD
             body: JSON.stringify(payload),
             signal: controller.signal,
             mode: 'cors', // Explicitly set CORS mode
@@ -246,24 +241,35 @@ generateBtn.addEventListener('click', async () => {
             }
             throw parseError;
         }
+=======
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Webhook returned status ${response.status}`);
+        }
+
+        const result = await response.json();
+>>>>>>> parent of 9bd0a13 (updated js file)
         
         // Parse the webhook response - handle array format with nested JSON string
         if (Array.isArray(result) && result.length > 0 && result[0].output) {
-            console.log('Processing array format with output field');
             // Parse the nested JSON string from the output field
             const parsedOutput = JSON.parse(result[0].output);
-            console.log('Parsed output:', parsedOutput);
             if (parsedOutput.flashcards && Array.isArray(parsedOutput.flashcards)) {
                 flashcards = parsedOutput.flashcards;
+<<<<<<< HEAD
                 console.log('Flashcards loaded successfully:', flashcards.length);
+=======
+>>>>>>> parent of 9bd0a13 (updated js file)
             } else {
                 console.warn('No flashcards found in parsed output');
                 throw new Error('Invalid flashcards format in response');
             }
         } else if (result && result.flashcards && Array.isArray(result.flashcards)) {
-            console.log('Processing direct flashcards format');
             // Direct flashcards format
             flashcards = result.flashcards;
+<<<<<<< HEAD
             console.log('Flashcards loaded successfully:', flashcards.length);
         } else {
             console.error('Unexpected response format:', result);
@@ -271,11 +277,11 @@ generateBtn.addEventListener('click', async () => {
             if (!response.ok) {
                 throw new Error(`Webhook returned status ${response.status} with no valid flashcards data`);
             }
+=======
+        } else {
+>>>>>>> parent of 9bd0a13 (updated js file)
             throw new Error('No flashcards found in response');
         }
-        
-        clearInterval(loadingInterval);
-        loadingMessage.textContent = originalMessage;
         
         displayFlashcards();
         
@@ -287,10 +293,8 @@ generateBtn.addEventListener('click', async () => {
         flashcardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
-        clearInterval(loadingInterval);
-        loadingMessage.textContent = originalMessage;
-        
         console.error('Error sending to webhook:', error);
+<<<<<<< HEAD
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
@@ -302,6 +306,9 @@ generateBtn.addEventListener('click', async () => {
         } else {
             alert('Error connecting to the server: ' + error.message + '\n\nGenerating flashcards locally instead.');
         }
+=======
+        alert('Error connecting to the server. Generating flashcards locally instead.');
+>>>>>>> parent of 9bd0a13 (updated js file)
         
         // Fallback to local generation on error
         if (activeTab === 'file') {
